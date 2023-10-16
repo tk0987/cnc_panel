@@ -1,34 +1,38 @@
 import sys
 # import network
 # import socket
-from time import sleep
-from machine import Pin
+from utime import sleep, ticks_us
+from machine import Pin,PWM
 import select
 import math
 # import network
 # import socket
-
-led = Pin("LED", Pin.OUT)
-
-IN1x = Pin(2,Pin.OUT)#step
-IN2x = Pin(3,Pin.OUT)#dir
-# IN3x = Pin(4,Pin.IN, Pin.PULL_UP)#fault
-#IN4x = Pin(5,Pin.OUT)
-
-IN1y = Pin(6,Pin.OUT)#step
-IN2y = Pin(7,Pin.OUT)#dir
-# IN3y = Pin(8,Pin.IN, Pin.PULL_UP)#fault
-#IN4y = Pin(9,Pin.OUT)
-
-IN1z = Pin(10,Pin.OUT)#step
-IN2z = Pin(11,Pin.OUT)#dir
-# IN3z = Pin(12,Pin.IN, Pin.PULL_UP)#fault
-#IN4z = Pin(13,Pin.OUT)
+global duty
+duty=32768
 global steps_per_revolution
 steps_per_revolution=200
-# global current_position_x
-# global current_position_y
-# global current_position_z
+led = Pin("LED", Pin.OUT)
+
+IN1x = PWM(Pin(2,Pin.OUT))#step
+IN1x.freq(1000)
+IN1x.duty_u16(duty)
+IN1x.deinit()
+IN2x = Pin(3,Pin.OUT)#dir
+
+
+IN1y = PWM(Pin(6,Pin.OUT))#step
+IN1y.freq(1000)
+IN1y.duty_u16(duty)
+IN1y.deinit()
+IN2y = Pin(7,Pin.OUT)#dir
+
+
+IN1z = PWM(Pin(10,Pin.OUT))#step
+IN1z.freq(1000)
+IN1z.duty_u16(duty)
+IN1z.deinit()
+IN2z = Pin(11,Pin.OUT)#dir
+
 global pinsx
 global pinsy
 global pinsz
@@ -37,9 +41,75 @@ pinsx = [IN1x, IN2x]
 pinsy = [IN1y, IN2y]
 
 pinsz = [IN1z, IN2z]
-# current_position_x = 0
-# current_position_y = 0
-# current_position_z = 0
+ 
+global pulse_x
+global pulse_y
+global pulse_z
+pulse_x=0
+pulse_y=0
+pulse_z=0
+def x_callback(pin):
+    if pin == IN1x:
+        global pulse_x
+        pulse_x+=1
+
+def y_callback(pin):
+    if pin == IN1y:
+        global pulse_y
+        pulse_y+=1
+
+def z_callback(pin):
+    if pin == IN1z:
+        global pulse_z
+        pulse_z+=1
+
+def freq_set(x_step,y_step,z_step):
+    global pulse_x
+    global pulse_y
+    global pulse_z
+    length=math.sqrt((x_step)**2+(y_step)**2+(z_step)**2)
+    rel_speed_factor_x=abs(x_step)/length
+    rel_speed_factor_y=abs(y_step)/length
+    rel_speed_factor_z=abs(z_step)/length
+    speed_factor=rel_speed_factor_x+rel_speed_factor_y+rel_speed_factor_z
+    base_freq=1000
+    freq_x=int(base_freq*(speed_factor/rel_speed_factor_x))
+    freq_y=int(base_freq*(speed_factor/rel_speed_factor_y))
+    freq_z=int(base_freq*(speed_factor/rel_speed_factor_z))
+    # time_needed=int(max(abs(x_step),abs(y_step),abs(z_step))/max(freq_x,freq_y,freq_z))*1000000
+    # start_time = ticks_us()
+    IN1x.freq(freq_x)
+    IN1x.duty_u16(duty)
+    IN1x.irq(handler=x_callback, trigger=2)
+    IN1y.freq(freq_y)
+    IN1y.duty_u16(duty)
+    IN1y.irq(handler=y_callback, trigger=2)
+    IN1z.freq(freq_z)
+    IN1z.duty_u16(duty)
+    IN1z.irq(handler=z_callback, trigger=2)
+    while True:
+    # Get the current time in microseconds
+        # current_time = ticks_us()
+        if pulse_x>=x_step:
+            IN1x.deinit()
+        if pulse_y>=y_step:
+            IN1y.deinit()
+        if pulse_z>=z_step:
+            IN1z.deinit()
+        if pulse_x>=x_step and pulse_y>=y_step and pulse_z>=z_step:
+            break
+        # # Calculate the elapsed time
+        # elapsed_time = current_time - start_time
+
+        # Check if the desired time 't' has passed
+        # if elapsed_time >= time_needed:
+        #     break
+
+    
+    # IN1y.deinit()
+    # IN1z.deinit()
+    
+
 
 
 def move(x_step,y_step,z_step):
@@ -64,149 +134,14 @@ def move(x_step,y_step,z_step):
         pinsz[1].value(1)
     if z_step<0:
         pinsz[1].value(0)
-    length=math.sqrt((x_step)**2+(y_step)**2+(z_step)**2)
-    rel_speed_factor_x=abs(x_step)/length
-    rel_speed_factor_y=abs(y_step)/length
-    rel_speed_factor_z=abs(z_step)/length
-    speed_factor=rel_speed_factor_x+rel_speed_factor_y+rel_speed_factor_z
+
     #control numbers for step count
-    control_x=0
-    control_y=0
-    control_z=0
+    # control_x=0
+    # control_y=0
+    # control_z=0
     sleep(0.001)
-    while True:
-        if abs(x_step)==abs(y_step) and abs(x_step)==abs(z_step) and abs(z_step)==abs(y_step):
-            if control_x < abs(x_step) and control_y < abs(y_step) and control_z < abs(z_step):
-
-                pinsx[0].value(1)
-                pinsy[0].value(1)
-                pinsz[0].value(1)
-                sleep(0.001)
-                
-                pinsx[0].value(0)
-                pinsy[0].value(0)
-                pinsz[0].value(0)
-                
-                sleep(0.001)
-                
-                control_x+=1
-                control_y+=1
-                control_z+=1
-                
-            if control_x<abs(x_step) and control_y<abs(y_step) and control_z>=abs(z_step):
-                pinsx[0].value(1)
-                pinsy[0].value(1)
-                
-                
-                sleep(0.001)
-                
-                pinsx[0].value(0)
-                pinsy[0].value(0)
-                
-                
-                sleep(0.001)
-                
-                control_x+=1
-                control_y+=1
-                
-            if control_x<abs(x_step) and control_y>=abs(y_step) and control_z<abs(z_step):
-                pinsx[0].value(1)
-                
-                pinsz[0].value(1)
-                
-                sleep(0.001)
-                
-                pinsx[0].value(0)
-                
-                pinsz[0].value(0)
-                
-                sleep(0.001)
-                
-                control_x+=1
-                
-                control_z+=1
-
-            if control_x>=abs(x_step) and control_y<abs(y_step) and control_z<abs(z_step):
-                
-                pinsy[0].value(1)
-                pinsz[0].value(1)
-                
-                sleep(0.001)
-                
-                
-                pinsy[0].value(0)
-                pinsz[0].value(0)
-                
-                sleep(0.001)
-                
-                
-                control_y+=1
-                control_z+=1
-                
-            if control_x<abs(x_step) and control_y>=abs(y_step) and control_z>=abs(z_step):
-                pinsx[0].value(1)
-                
-                
-                sleep(0.001)
-                
-                pinsx[0].value(0)
-                
-                
-                sleep(0.001)
-                
-                control_x+=1
-
-            if control_x>=abs(x_step) and control_y<abs(y_step) and control_z>=abs(z_step):
-                
-                pinsy[0].value(1)
-                
-                
-                sleep(0.001)
-                
-                
-                pinsy[0].value(0)
-                
-                
-                sleep(0.001)
-                
-                
-                control_y+=1
-                
-            if control_x>=abs(x_step) and control_y>=abs(y_step) and control_z<abs(z_step):
-
-                pinsz[0].value(1)
-                
-                sleep(0.001)
-                
-
-                pinsz[0].value(0)
-                
-                sleep(0.001)
-                
-
-                control_z+=1
-
-        if abs(x_step)!=abs(y_step) or abs(x_step)!=abs(z_step) or abs(z_step)!=abs(y_step):
-            if control_z<abs(z_step):
-                pinsz[0].value(1)                
-                sleep(0.0005/(rel_speed_factor_y/speed_factor))
-                pinsz[0].value(0)
-                sleep(0.0005/(rel_speed_factor_y/speed_factor))
-                control_z+=1
-            if control_y<abs(y_step):
-                pinsy[0].value(1)                
-                sleep(0.0005/(rel_speed_factor_y/speed_factor))
-                pinsy[0].value(0)
-                sleep(0.0005/(rel_speed_factor_y/speed_factor))
-                control_y+=1
-            if control_x<abs(x_step):
-                pinsx[0].value(1)                
-                sleep(0.0005/(rel_speed_factor_x/speed_factor))
-                pinsx[0].value(0)
-                sleep(0.0005/(rel_speed_factor_x/speed_factor))
-                control_x+=1
-        if control_x==abs(x_step) and control_z==abs(z_step) and control_y==abs(y_step):
-            break
+    freq_set(x_step,y_step,z_step)
+ 
 
 while True:
     if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
@@ -225,6 +160,5 @@ while True:
             move(x_step=x, y_step=y, z_step=z)
             print("ok")
             led.value(0)
-
 
 
