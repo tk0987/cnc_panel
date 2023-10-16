@@ -67,6 +67,9 @@ def freq_set(x_step,y_step,z_step):
     global pulse_x
     global pulse_y
     global pulse_z
+    pulse_x=0
+    pulse_y=0
+    pulse_z=0
     length=math.sqrt((x_step)**2+(y_step)**2+(z_step)**2)
     rel_speed_factor_x=abs(x_step)/length
     rel_speed_factor_y=abs(y_step)/length
