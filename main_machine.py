@@ -5,6 +5,7 @@ from utime import sleep, ticks_us
 from machine import Pin,PWM
 import select
 import math
+
 # import network
 # import socket
 global duty
@@ -49,19 +50,22 @@ pulse_x=0
 pulse_y=0
 pulse_z=0
 def x_callback(pin):
-    if pin == IN1x:
-        global pulse_x
-        pulse_x+=1
+#     if pin == IN1x:
+    global pulse_x
+    pulse_x+=1
+    return pulse_x
 
 def y_callback(pin):
-    if pin == IN1y:
-        global pulse_y
-        pulse_y+=1
+#     if pin == IN1y:
+    global pulse_y
+    pulse_y+=1
+    return pulse_y
 
 def z_callback(pin):
-    if pin == IN1z:
-        global pulse_z
-        pulse_z+=1
+#     if pin == IN1z:
+    global pulse_z
+    pulse_z+=1
+    return pulse_z
 
 def freq_set(x_step,y_step,z_step):
     global pulse_x
@@ -71,33 +75,57 @@ def freq_set(x_step,y_step,z_step):
     pulse_y=0
     pulse_z=0
     length=math.sqrt((x_step)**2+(y_step)**2+(z_step)**2)
-    rel_speed_factor_x=abs(x_step)/length
-    rel_speed_factor_y=abs(y_step)/length
-    rel_speed_factor_z=abs(z_step)/length
+    if x_step!=0:
+        rel_speed_factor_x=abs(x_step)/length
+    else:
+        rel_speed_factor_x=0
+    if y_step!=0:
+        rel_speed_factor_y=abs(y_step)/length
+    else:
+        rel_speed_factor_y=0
+    if z_step!=0:
+        rel_speed_factor_z=abs(z_step)/length
+    else:
+        rel_speed_factor_z=0
     speed_factor=rel_speed_factor_x+rel_speed_factor_y+rel_speed_factor_z
-    base_freq=1000
-    freq_x=int(base_freq*(speed_factor/rel_speed_factor_x))
-    freq_y=int(base_freq*(speed_factor/rel_speed_factor_y))
-    freq_z=int(base_freq*(speed_factor/rel_speed_factor_z))
+    base_freq=100
+    if x_step!=0:
+        freq_x=int(base_freq*(speed_factor/rel_speed_factor_x))
+    else:
+        freq_x=0
+    if y_step!=0:
+        freq_y=int(base_freq*(speed_factor/rel_speed_factor_y))
+    else:
+        freq_y=0
+    if z_step!=0:
+        freq_z=int(base_freq*(speed_factor/rel_speed_factor_z))
+    else:
+        freq_z=0
     # time_needed=int(max(abs(x_step),abs(y_step),abs(z_step))/max(freq_x,freq_y,freq_z))*1000000
     # start_time = ticks_us()
-    IN1x.freq(freq_x)
-    IN1x.duty_u16(duty)
-    IN1x.irq(handler=x_callback, trigger=2)
-    IN1y.freq(freq_y)
-    IN1y.duty_u16(duty)
-    IN1y.irq(handler=y_callback, trigger=2)
-    IN1z.freq(freq_z)
-    IN1z.duty_u16(duty)
-    IN1z.irq(handler=z_callback, trigger=2)
+    if x_step!=0:
+       IN1x.freq(freq_x)
+       IN1x.duty_u16(duty)
+       IN1x.irq(handler=x_callback, trigger=2)
+    if y_step!=0:
+       IN1y.freq(freq_y)
+       IN1y.duty_u16(duty)
+       IN1y.irq(handler=y_callback, trigger=2)
+    if z_step!=0:
+       IN1z.freq(freq_z)
+       IN1z.duty_u16(duty)
+       IN1z.irq(handler=z_callback, trigger=2)
     while True:
     # Get the current time in microseconds
         # current_time = ticks_us()
-        if pulse_x>=x_step:
+        if pulse_x>=abs(x_step):
+            IN1x.duty_u16(0)
             IN1x.deinit()
-        if pulse_y>=y_step:
+        if pulse_y>=abs(y_step):
+            IN1y.duty_u16(0)
             IN1y.deinit()
-        if pulse_z>=z_step:
+        if pulse_z>=abs(z_step):
+            IN1z.duty_u16(0)
             IN1z.deinit()
         if pulse_x>=x_step and pulse_y>=y_step and pulse_z>=z_step:
             break
@@ -163,5 +191,6 @@ while True:
             move(x_step=x, y_step=y, z_step=z)
             print("ok")
             led.value(0)
+
 
 
