@@ -440,6 +440,49 @@ class Ui_Dialog(object):
             ax.set_zlabel('Z-axis')
             ax.legend()
             plt.show()
+    def send_gcode_To_CNC(self,file):
+        global step_per_rev
+        global com
+        steps_per_mm = int(step_per_rev / 0.8)
+        # file = QFileDialog.getOpenFileName(Dialog, "Open File", "", "All Files (*)")
+        # if file[0]:
+        # temp = []
+        # f = open(file[0], "r")
+
+        # for line in file:
+        #     a, b, c = line.split("   ")
+        #     temp.append([a, b, c])
+        
+        temp = np.asarray(file, dtype=np.float32)
+        now = datetime.now()
+        fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
+        f2 = open(str(fname) + ".txt", "w")
+        com=str(self.COMs.text())
+        s = serial.Serial(com, 115200)
+        
+        for index in range(0, len(temp), 1):
+            if index>=1:
+                delta_x = int((temp[index-1,0]-temp[index,0]) * steps_per_mm)
+                delta_y = int((temp[index-1,1]-temp[index,1]) * steps_per_mm)
+                delta_z = int((temp[index-1,2]-temp[index,2]) * steps_per_mm)
+                
+                data = f"{delta_x} {delta_y} {delta_z}\n"
+                s.write(data.encode("utf-8"))
+                f2.write(f"{delta_x} {delta_y} {delta_z}\n")
+            self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
+            
+            while True:
+                a = s.readline(5).decode().strip()
+                print(a)
+                
+                if a == "ok":
+                    
+                    break
+            # print("ok")
+            print(index)
+        
+        # f.close()
+        f2.close()
     def gcode_coords(self):
         # global step_per_rev
         # steps_per_mm = int(step_per_rev / 0.8)
@@ -596,23 +639,23 @@ class Ui_Dialog(object):
             fname=now.strftime(f"%d_%m_%Y__%H_%M_%S_gcode-decoded")
             f2=open(str(fname)+".txt","w")
             # cra=0
-            temp2=[]
-            for shit in range(len(temp)):
-                if shit>=1:
-                    dx=abs(temp[shit][0]-temp[shit-1][0])
-                    dy=abs(temp[shit][1]-temp[shit-1][1])
-                    dz=abs(temp[shit][2]-temp[shit-1][2])
-                    if dx >=0.004 or dy>=0.004 or dz>=0.004:
-                        temp2.append([temp[shit][0],temp[shit][1],temp[shit][2]])
-                self.progress.setValue(int(np.floor(float(100.0*shit/len(temp)))))
+            # temp2=[]
+            # for shit in range(len(temp)):
+            #     if shit>=1:
+            #         dx=abs(temp[shit][0]-temp[shit-1][0])
+            #         dy=abs(temp[shit][1]-temp[shit-1][1])
+            #         dz=abs(temp[shit][2]-temp[shit-1][2])
+            #         if dx >=0.004 or dy>=0.004 or dz>=0.004:
+            #             temp2.append([temp[shit][0],temp[shit][1],temp[shit][2]])
+            #     self.progress.setValue(int(np.floor(float(100.0*shit/len(temp)))))
             index=0
-            for element in temp2:
+            for element in temp:
                 index+=1
                 f2.writelines(str(element[0])+"   "+str(element[1])+"   "+str(element[2])+"\n")
-                self.progress.setValue(int(np.floor(float(100.0*index/len(temp2)))))
-
+                self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
+            # self.send_gcode_To_CNC(temp)
             f2.close()
-            Ui_Dialog.succesEvent(self, f2.close())
+            # Ui_Dialog.succesEvent(self, f2.close())
     def sendTo_CNC(self):
         global step_per_rev
         global com
@@ -620,43 +663,69 @@ class Ui_Dialog(object):
         file = QFileDialog.getOpenFileName(Dialog, "Open File", "", "All Files (*)")
         if file[0]:
             temp = []
-            f = open(file[0], "r")
+            with open(file[0], "r") as f:
+                indexx=0
+                for line in f:
+                    parts = re.findall(r"[-+]?\d*\.\d+|\d+(?:[eE][-+]?\d+)?", line)
+                    indexx+=1
+                    try:
+                        # if len(parts) == 3:
+                        a, b, c = map(float, parts)
+                        temp.append([a, b, c])
+                        # else:
+                        #     print("Invalid line:" + str(indexx))
+                    except ValueError as e:
+                        print("Error parsing line:", line)
+            print(1)
+            f.close()
 
-            for line in f:
-                a, b, c = line.split("   ")
-                temp.append([a, b, c])
-            
-            temp = np.asarray(temp, dtype=np.float32)
+            temp = np.asarray(temp)
             now = datetime.now()
             fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
             f2 = open(str(fname) + ".txt", "w")
-            com=str(self.COMs.text())
-            s = serial.Serial(com, 115200)
-            
-            for index in range(0, len(temp), 1):
-                if index>=1:
-                    delta_x = int((temp[index-1,0]-temp[index,0]) * steps_per_mm)
-                    delta_y = int((temp[index-1,1]-temp[index,1]) * steps_per_mm)
-                    delta_z = int((temp[index-1,2]-temp[index,2]) * steps_per_mm)
+            try:
+                com=str(self.COMs.text())
+                s = serial.Serial(com, 115200)
+            except:
+                print(Exception)
+            print(2)
+            indexxx=0
+            print(len(temp))
+            while True:
+                print(indexxx)
+                if indexxx>=1:
+                    print(indexxx)
+                    delta_x = int((temp[indexxx-1,0]-temp[indexxx,0]) * steps_per_mm)
+                    delta_y = int((temp[indexxx-1,1]-temp[indexxx,1]) * steps_per_mm)
+                    delta_z = int((temp[indexxx-1,2]-temp[indexxx,2]) * steps_per_mm)
                     
                     data = f"{delta_x} {delta_y} {delta_z}\n"
-                    s.write(data.encode("utf-8"))
-                    f2.write(f"{delta_x} {delta_y} {delta_z}\n")
-                self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
+                    print(3)
+                    try:
+                        s.write(data.encode("utf-8"))
+                        print(4)
+                    except:
+                        print(Exception)
+                        # print()
+                    f2.write(data)
+                    self.progress.setValue(int(np.floor(float(100.0*indexxx/len(temp)))))
                 
-                while True:
-                    a = s.readline(5).decode().strip()
-                    print(a)
-                    
-                    if a == "ok":
+                    while True:
+                        a = s.readline(5).decode().strip()
+                        print(a)
                         
-                        break
+                        if a == "ok":
+                            
+                            break
+                indexxx+=1
+                if indexxx>=len(temp):
+                    break
                 # print("ok")
-                print(index)
+                print(indexxx)
             
-            f.close()
-            f2.close()
-            Ui_Dialog.succesEvent(self, f2.close())
+            
+                
+            # Ui_Dialog.succesEvent(self, f2.close())
         # print("ok")
 
     def coord(self,file):  
@@ -749,29 +818,36 @@ class Ui_Dialog(object):
         
         global step_per_rev 
         global com
+        scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_3.text()))
         com=str(self.COMs.text())
         s = serial.Serial(com, 115200)
-        data = f"{steps} {0} {0}\n"
+        data = f"{int(steps/scale)} {0} {0}\n"
         s.write(data.encode("utf-8"))
 
     def b4Clicked_y(self):  
         global step_per_rev
         global com 
+        scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_5.text()))
         com=str(self.COMs.text())
         s = serial.Serial(com, 115200)
-        data = f"{0} {steps} {0}\n"
+        data = f"{0} {int(steps/scale)} {0}\n"
         s.write(data.encode("utf-8"))
        
     def b5Clicked_z(self):   
         global step_per_rev 
         global com
+        scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_7.text()))
         com=str(self.COMs.text())
+        print(com)
         s = serial.Serial(com, 115200)
-        data = f"{0} {0} {steps}\n"
-        s.write(data.encode("utf-8"))
+        data = f"{0} {0} {int(steps/scale)}\n"
+        try:
+            s.write(data.encode("utf-8"))
+        except Exception as e:
+            print(e)
 
 
     def coord_plot(self,file):   
