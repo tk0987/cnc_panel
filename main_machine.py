@@ -7,7 +7,7 @@ import select
 import math
 machine.freq(125000000)
 # import network
-# import socket
+# import socket #those later
 
 global steps_per_revolution
 steps_per_revolution=200
@@ -38,12 +38,6 @@ pinsz = [IN1z, IN2z]
  
 
 def freq_set(x_step,y_step,z_step):
-    global pulse_x
-    global pulse_y
-    global pulse_z
-    pulse_x=0
-    pulse_y=0
-    pulse_z=0
     length=abs(x_step)+abs(y_step)+abs(z_step) # now normalised correctly...
     if x_step!=0:
         rel_speed_factor_x=abs(x_step)/length
