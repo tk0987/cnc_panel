@@ -2,4 +2,4 @@
 for_control_of_cnc_multitool
 
 
-todo: nicer look, multithreading
+todo: nicer look, multithreading for gui
