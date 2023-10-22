@@ -1,3 +1,5 @@
+# this code was written for raspberry pi pico 
+
 import sys
 # import network
 # import socket
