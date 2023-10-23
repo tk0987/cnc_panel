@@ -1,4 +1,6 @@
 # this code was written for raspberry pi pico 
+# i do not want to rewrite sth like grbl, so my pc does everything
+# smooth enough
 
 import sys
 # import network
