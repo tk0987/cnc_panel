@@ -41,19 +41,6 @@ pulse_x=0
 pulse_y=0
 pulse_z=0
 
-# Set up Pico W as an access point
-ap = network.WLAN(network.AP_IF)
-ap.active(True)
-ap.config(essid='picoCNC', password='picowcnc')
-
-
-
-# Set up server
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.bind(('0.0.0.0', 8000))
-server.listen(1)
-
-
 def x_callback(pin):
 #     if pin == IN1x:
     global pulse_x
@@ -164,36 +151,69 @@ def move(x_step,y_step,z_step):
     sleep(0.001)
     freq_set(x_step,y_step,z_step)
 
+ap = network.WLAN(network.AP_IF)
+ap.active(True)
+ap.config(essid='picoCNC', password='picowcnc')
 
-while True:
-    client, address = server.accept()
-    data = client.recv(1024)
-    if data:
-        # print('Received:', data.decode())
-        led.value(1)
-        parts = data.split(" ")
-        x = int(parts[0])
-        y = int(parts[1])
-        z = int(parts[2])
-        move(x_step=x, y_step=y, z_step=z)
-        client.sendall(b'Ok')
-    client.close()
+# Set up server
+try:
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.bind(('0.0.0.0', 8000))
+    server.listen(1)
+    print("Server initialized and listening on port 8000.")
+except OSError as e:
+    print(f"Failed to initialize server: {e}")
+    server = None
 
+while server:  # Ensure server is valid
+    try:
+        # Accept a client connection
+        client, address = server.accept()
+        print(f"Connection established with {address}")
+        
+        # Process client data
+        try:
+            data = client.recv(1024)
+            if data:
+                data = data.decode("utf-8")
+                parts = data.strip().split(" ")
+                print("Received data:", parts)
 
-#     if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:   # this is for usb only
-#         a = sys.stdin.readline().strip()
-#         if len(a) > 0:
-#             led.value(1)
-#             command = a
-# #             if len(command) <= 1:
-# #                 reset_position()
-# #                 print("ok")
-# #             else:
-#             parts = command.split(" ")
-#             x = int(parts[0])
-#             y = int(parts[1])
-#             z = int(parts[2])
-#             move(x_step=x, y_step=y, z_step=z)
-#             print("ok")
-#             led.value(0)
+                # Parse and act upon received data
+                
+                x = int(parts[0])
+                y = int(parts[1])
+                z = int(parts[2])
+                print('Processed:', x, y, z)
+                move(x_step=x, y_step=y, z_step=z)
+
+        except Exception as e:
+            print(f"Error processing client data: {e}")
+        finally:
+            client.close()
+            print("Connection closed.")
+
+    except OSError as e:
+        print(f"Socket error: {e}")
+        if e.errno == 9:  # EBADF
+            print("Server socket invalid. Reinitializing...")
+            try:
+                server.close()
+            except:
+                pass
+            try:
+                server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server.bind(('0.0.0.0', 8000))
+                server.listen(1)
+                print("Server reinitialized and listening on port 8000.")
+            except OSError as e:
+                print(f"Failed to reinitialize server: {e}")
+                break
+    except KeyboardInterrupt:
+        print("Shutting down server.")
+        try:
+            server.close()
+        except:
+            pass
+        break
 
