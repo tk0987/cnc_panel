@@ -54,7 +54,7 @@ class Ui_Main(object):
             Main.setObjectName(u"Main")
         # Main.setWindowModality(Qt.WindowModality.ApplicationModal)
         Main.resize(1500, 865)
-        Main.setWindowOpacity(0.5)
+        Main.setWindowOpacity(0.95)
         Main.setStyleSheet(u"QWidget {\n"
 "    background-color: #2E2E2E; /* Dark background color */\n"
 "    color: white; /* White text color */\n"
@@ -527,16 +527,18 @@ class Ui_Main(object):
             plt.show()
     def send_gcode_To_CNC(self,file):
         global step_per_rev
-        global com
+        # global com
         global pico_ip
         global port
-        try:
-            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            client_socket.connect((pico_ip, port))
-        except ConnectionError as e:
-            print("wifi fail!")
-            sys.exit(1)
+        # try:
+        #     # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #     # client_socket.connect((pico_ip, port))
+        # except ConnectionError as e:
+        #     print("wifi fail!")
+        #     sys.exit(1)
+        #     client_socket.close()
         
+        # client_socket.close()
 
         steps_per_mm = int(step_per_rev / 0.8)
         
@@ -544,11 +546,11 @@ class Ui_Main(object):
         now = datetime.now()
         fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
         f2 = open(str(fname) + ".txt", "w")
-        com=str(self.COMs.text())
-        try:
-            s = serial.Serial(com, 115200)
-        except Exception as e:
-            pass
+        # com=str(self.COMs.text())
+        # try:
+        #     s = serial.Serial(com, 115200)
+        # except Exception as e:
+        #     pass
         
         for index in range(0, len(temp), 1):
             if index>=1:
@@ -558,7 +560,7 @@ class Ui_Main(object):
                 
                 data = f"{delta_x} {delta_y} {delta_z}\n"
                 # s.write(data.encode("utf-8"))
-                client_socket.sendall(data.encode())
+                client_socket.sendall(data.encode("utf-8"))
                 f2.write(f"{delta_x} {delta_y} {delta_z}\n")
             self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
             
@@ -570,7 +572,9 @@ class Ui_Main(object):
                     
                     break
             # print("ok")
+        
             print(index)
+        # client_socket.close()
         
         # f.close()
         f2.close()
@@ -737,11 +741,11 @@ class Ui_Main(object):
             f2.close()
     def sendTo_CNC(self):
         global step_per_rev
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         
 
         steps_per_mm = int(step_per_rev / 0.8)
@@ -765,11 +769,11 @@ class Ui_Main(object):
             now = datetime.now()
             fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
             f2 = open(str(fname) + ".txt", "w")
-            try:
-                com=str(self.COMs.text())
-                s = serial.Serial(com, 115200)
-            except:
-                print(Exception)
+            # try:
+                # com=str(self.COMs.text())
+            #     s = serial.Serial(com, 115200)
+            # except:
+            #     print(Exception)
             print(2)
             indexxx=0
             print(len(temp))
@@ -785,7 +789,7 @@ class Ui_Main(object):
                     print(3)
                     try:
                         # s.write(data.encode("utf-8"))
-                        client_socket.sendall(data.encode())
+                        client_socket.sendall(data.encode('utf-8'))
                         print(4)
                     except:
                         print(Exception)
@@ -803,6 +807,7 @@ class Ui_Main(object):
                     break
                 # print("ok")
                 print(indexxx)
+        # client_socket.close()
 
     def coord(self,file):  
         
@@ -870,71 +875,75 @@ class Ui_Main(object):
 
     def button3Clicked(self):   
         global step_per_rev 
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
 
         scale=float(self.lineEdit.text())
-        steps_y=int(float(self.lineEdit_3.text())/scale)
-        steps_x=int(float(self.lineEdit_2.text())/scale)
-        steps_z=int(float(self.lineEdit_4.text())/scale)
-        com=str(self.COMs.text())
-        s = serial.Serial(com, 115200)
+        steps_y=int(float(self.lineEdit_3.text())*scale)
+        steps_x=int(float(self.lineEdit_2.text())*scale)
+        steps_z=int(float(self.lineEdit_4.text())*scale)
+        # com=str(self.COMs.text())
+        # s = serial.Serial(com, 115200)
         data = f"{steps_x} {steps_y} {steps_z}\n"
         # s.write(data.encode("utf-8"))
-        client_socket.sendall(data.encode())
+        client_socket.sendall(data.encode('utf-8'))
+        # client_socket.close()
         
     def button2Clicked_x(self):
         
         global step_per_rev 
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_2.text()))
-        com=str(self.COMs.text())
-        s = serial.Serial(com, 115200)
-        data = f"{int(steps/scale)} {0} {0}\n"
+        # com=str(self.COMs.text())
+        # s = serial.Serial(com, 115200)
+        data = f"{int(steps*scale)} {0} {0}\n"
         # s.write(data.encode("utf-8"))
-        client_socket.sendall(data.encode())
+        client_socket.sendall(data.encode('utf-8'))
+        # client_socket.close()
 
     def b4Clicked_y(self):  
         global step_per_rev
-        global com 
+        # global com 
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_3.text()))
-        com=str(self.COMs.text())
-        s = serial.Serial(com, 115200)
-        data = f"{0} {int(steps/scale)} {0}\n"
-        client_socket.sendall(data.encode())
+        # com=str(self.COMs.text())
+        # s = serial.Serial(com, 115200)
+        data = f"{0} {int(steps*scale)} {0}\n"
+        client_socket.sendall(data.encode('utf-8'))
         # s.write(data.encode("utf-8"))
+        # client_socket.close()
        
     def b5Clicked_z(self):   
         global step_per_rev 
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_4.text()))
-        com=str(self.COMs.text())
-        print(com)
-        s = serial.Serial(com, 115200)
-        data = f"{0} {0} {int(steps/scale)}\n"
+        # com=str(self.COMs.text())
+        # print(com)
+        # s = serial.Serial(com, 115200)
+        data = f"{0} {0} {int(steps*scale)}\n"
         try:
             # s.write(data.encode("utf-8"))
-            client_socket.sendall(data.encode())
+            client_socket.sendall(data.encode('utf-8'))
         except Exception as e:
             print(e)
+        # client_socket.close()
 
 
     def coord_plot(self,file):   
@@ -957,17 +966,17 @@ class Ui_Main(object):
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),4): #_____________________________________format typu PNG ma 4 wartości - kształt tensora: (x, y, 4)
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1/scaleZ
+                                    z=1*scaleZ
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),1):
                             if (array[row,column,0])>0:
-                                    z=1/scaleZ
+                                    z=1*scaleZ
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0])):
                             if (array[row,column])>0:
-                                    z=1/scaleZ
+                                    z=1*scaleZ
                             else:
                                     z=0
                         f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
@@ -1095,11 +1104,11 @@ class Ui_Main(object):
             plt.show()
     def send_gcode_To_CNC(self,file):
         global step_per_rev
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
 
         steps_per_mm = int(step_per_rev / 0.8)
         
@@ -1107,11 +1116,11 @@ class Ui_Main(object):
         now = datetime.now()
         fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
         f2 = open(str(fname) + ".txt", "w")
-        com=str(self.COMs.text())
-        try:
-            s = serial.Serial(com, 115200)
-        except Exception as e:
-            pass
+        # com=str(self.COMs.text())
+        # try:
+        #     s = serial.Serial(com, 115200)
+        # except Exception as e:
+        #     pass
         
         for index in range(0, len(temp), 1):
             if index>=1:
@@ -1121,7 +1130,7 @@ class Ui_Main(object):
                 
                 data = f"{delta_x} {delta_y} {delta_z}\n"
                 # s.write(data.encode("utf-8"))
-                client_socket.sendall(data.encode())
+                client_socket.sendall(data.encode('utf-8'))
                 f2.write(f"{delta_x} {delta_y} {delta_z}\n")
             self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
             
@@ -1134,6 +1143,7 @@ class Ui_Main(object):
                     break
             # print("ok")
             print(index)
+        # client_socket.close()
         
         # f.close()
         f2.close()
@@ -1300,11 +1310,11 @@ class Ui_Main(object):
             f2.close()
     def sendTo_CNC(self):
         global step_per_rev
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
 
         steps_per_mm = int(step_per_rev / 0.8)
         file = QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)")
@@ -1320,19 +1330,19 @@ class Ui_Main(object):
                         temp.append([a, b, c])
                     except ValueError as e:
                         print("Error parsing line:", line)
-            print(1)
+            # print(1)
             f.close()
 
             temp = np.asarray(temp)
             now = datetime.now()
             fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
             f2 = open(str(fname) + ".txt", "w")
-            try:
-                com=str(self.COMs.text())
-                s = serial.Serial(com, 115200)
-            except:
-                print(Exception)
-            print(2)
+            # try:
+                # com=str(self.COMs.text())
+            #     s = serial.Serial(com, 115200)
+            # except:
+            #     print(Exception)
+            # print(2)
             indexxx=0
             print(len(temp))
             while True:
@@ -1347,7 +1357,7 @@ class Ui_Main(object):
                     print(3)
                     try:
                         # s.write(data.encode("utf-8"))
-                        client_socket.sendall(data.encode())
+                        client_socket.sendall(data.encode('utf-8'))
                         print(4)
                     except:
                         print(Exception)
@@ -1363,8 +1373,10 @@ class Ui_Main(object):
                 indexxx+=1
                 if indexxx>=len(temp):
                     break
+                # client_socket.close()
                 # print("ok")
                 print(indexxx)
+        # client_socket.close()
 
     def coord(self,file):  
         
@@ -1432,71 +1444,75 @@ class Ui_Main(object):
 
     def button3Clicked(self):   
         global step_per_rev 
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
 
         scale=float(self.lineEdit.text())
-        steps_y=int(float(self.lineEdit_3.text())/scale)
-        steps_x=int(float(self.lineEdit_2.text())/scale)
-        steps_z=int(float(self.lineEdit_4.text())/scale)
-        com=str(self.COMs.text())
-        s = serial.Serial(com, 115200)
+        steps_y=int(float(self.lineEdit_3.text())*scale)
+        steps_x=int(float(self.lineEdit_2.text())*scale)
+        steps_z=int(float(self.lineEdit_4.text())*scale)
+        # com=str(self.COMs.text())
+        # s = serial.Serial(com, 115200)
         data = f"{steps_x} {steps_y} {steps_z}\n"
         # s.write(data.encode("utf-8"))
-        client_socket.sendall(data.encode())
+        client_socket.sendall(data.encode('utf-8'))
+        # client_socket.close()
         
     def button2Clicked_x(self):
         
         global step_per_rev 
-        global com
+        # global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_2.text()))
-        com=str(self.COMs.text())
-        s = serial.Serial(com, 115200)
-        data = f"{int(steps/scale)} {0} {0}\n"
+        # com=str(self.COMs.text())
+        # s = serial.Serial(com, 115200)
+        data = f"{int(steps*scale)} {0} {0}\n"
         # s.write(data.encode("utf-8"))
-        client_socket.sendall(data.encode())
+        client_socket.sendall(data.encode('utf-8'))
+        # client_socket.close()
 
     def b4Clicked_y(self):  
         global step_per_rev
         global com 
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_3.text()))
-        com=str(self.COMs.text())
-        s = serial.Serial(com, 115200)
-        data = f"{0} {int(steps/scale)} {0}\n"
-        client_socket.sendall(data.encode())
+        # com=str(self.COMs.text())
+        # s = serial.Serial(com, 115200)
+        data = f"{0} {int(steps*scale)} {0}\n"
+        client_socket.sendall(data.encode('utf-8'))
         # s.write(data.encode("utf-8"))
+        # client_socket.close()
 
     def b5Clicked_z(self):   
         global step_per_rev 
         global com
         global pico_ip
         global port
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((pico_ip, port))
+        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_4.text()))
-        com=str(self.COMs.text())
-        print(com)
-        s = serial.Serial(com, 115200)
-        data = f"{0} {0} {int(steps/scale)}\n"
+        # com=str(self.COMs.text())
+        # print(com)
+        # s = serial.Serial(com, 115200)
+        data = f"{0} {0} {int(steps*scale)}\n"
         try:
             # s.write(data.encode("utf-8"))
-            client_socket.sendall(data.encode())
+            client_socket.sendall(data.encode('utf-8'))
         except Exception as e:
             print(e)
+        # client_socket.close()
 
 
     def coord_plot(self,file):   
@@ -1519,17 +1535,17 @@ class Ui_Main(object):
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),4): #_____________________________________format typu PNG ma 4 wartości - kształt tensora: (x, y, 4)
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1/scaleZ
+                                    z=1*scaleZ
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),1):
                             if (array[row,column,0])>0:
-                                    z=1/scaleZ
+                                    z=1*scaleZ
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0])):
                             if (array[row,column])>0:
-                                    z=1/scaleZ
+                                    z=1*scaleZ
                             else:
                                     z=0
                         f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
@@ -1637,6 +1653,7 @@ class Ui_Main(object):
 
 
 if __name__ == "__main__":
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QWidget()  
     ui = Ui_Main()
@@ -1649,3 +1666,4 @@ if __name__ == "__main__":
     
     sys.exit(app.exec())
     client_socket.close()
+    
