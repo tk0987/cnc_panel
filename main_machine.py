@@ -189,9 +189,9 @@ while server:  # Ensure server is valid
 
         except Exception as e:
             print(f"Error processing client data: {e}")
-        finally:
-            client.close()
-            print("Connection closed.")
+        # finally:
+        #     client.close()
+        #     print("Connection closed.")
 
     except OSError as e:
         print(f"Socket error: {e}")
