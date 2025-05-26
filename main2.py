@@ -2,9 +2,9 @@ from machine import Pin, ADC
 import utime
 
 # Constants
-FREQ = 5000
+FREQ = 1000
 PERIOD_US = int(1_000_000 / FREQ)  # 200 µs
-adc = ADC(26)  # Potentiometer on GP26
+adc = ADC(28)  # Potentiometer on GP26
 
 # Setup GPIO pins
 pins = [Pin(i, Pin.OUT) for i in (18, 19, 20)]
@@ -13,8 +13,8 @@ def get_duty_us():
     # Read potentiometer and convert to duty in microseconds
     val = adc.read_u16()
     # Map to 0.01% to 5% of 200 us => 0.02 us to 10 us
-    min_us = PERIOD_US * 0.0001  # 0.02 us
-    max_us = PERIOD_US * 0.05    # 10 us
+    min_us = PERIOD_US * 0.001  # 0.02 us
+    max_us = PERIOD_US * 0.1    # 10 us
     return min_us + (val / 65535) * (max_us - min_us)
 
 while True:
@@ -49,3 +49,4 @@ while True:
     elapsed = utime.ticks_diff(utime.ticks_us(), t_start)
     if elapsed < PERIOD_US:
         utime.sleep_us(PERIOD_US - elapsed)
+
