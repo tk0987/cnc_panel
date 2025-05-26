@@ -2,11 +2,11 @@ import sys
 import network
 import socket
 from utime import sleep, ticks_ms,ticks_diff
-from machine import Pin,PWM,freq
+from machine import Pin,PWM,freq,ADC
 import select
 import math
 machine.freq(125000000)
-
+voltmeter=ADC(27)
 global steps_per_revolution
 steps_per_revolution=200
 led = Pin("LED", Pin.OUT)
@@ -108,11 +108,31 @@ def freq_set(x_step,y_step,z_step):
 
         for i, (pin, frequency, max_oscillations) in enumerate(pins):
             if oscillation_counts[i] < max_oscillations:
-                if ticks_diff(current_time, last_toggle_times[i]) >= 1000 / frequency:
+                if voltmeter.read_u16()<500: # if short current - take 4 steps back. hole will be slightly bigger. needs improvement
+                    pause_ticks = True # not disrupting the loop
+                    IN2x=not IN2x # dir change
+                    IN2y=not IN2y
+                    IN2z=not IN2z
+                    for _ in range(4): # back
+                        IN1x=not IN1x
+                        IN1y=not IN1y
+                        IN1z=not IN1z
+                    sleep(0.2)
+                    IN2x=not IN2x # dir forward again
+                    IN2y=not IN2y
+                    IN2z=not IN2z
+                    for _ in range(4): # forward
+                        IN1x=not IN1x
+                        IN1y=not IN1y
+                        IN1z=not IN1z
+                    pause_ticks = False # again, ticks & borrelia!
+                    
+                if ticks_diff(current_time, last_toggle_times[i]) >= 1000 / frequency: # main loop
                     pin_states[i] = not pin_states[i]
                     pin.value(pin_states[i])
                     last_toggle_times[i] = current_time
                     oscillation_counts[i] += 1
+                
         if all(oc >= max_oscillations for oc, _, max_oscillations in zip(oscillation_counts, pins, [max_oscillations for _, _, max_oscillations in pins])):
             break
 
@@ -150,7 +170,8 @@ def move(x_step,y_step,z_step):
     # control_z=0
     sleep(0.001)
     freq_set(x_step,y_step,z_step)
-
+# Set up Pico W as an access point
+# Set up Pico W as an access point
 ap = network.WLAN(network.AP_IF)
 ap.active(True)
 ap.config(essid='picoCNC', password='picowcnc')
@@ -189,9 +210,9 @@ while server:  # Ensure server is valid
 
         except Exception as e:
             print(f"Error processing client data: {e}")
-        # finally:
-        #     client.close()
-        #     print("Connection closed.")
+#         finally:
+#             client.close()
+#             print("Connection closed.")
 
     except OSError as e:
         print(f"Socket error: {e}")
@@ -216,4 +237,58 @@ while server:  # Ensure server is valid
         except:
             pass
         break
+
+# 
+# 
+# 
+# 
+# while True:
+#     client, address = server.accept()
+#     if client:
+#         try:
+#             data = client.recv(1024)
+#             if data:
+#                 data = data.decode("utf-8")
+#                 print("Received:", data)
+#         except Exception as e:
+#             print("Error receiving data:", e)
+#         finally:
+#             client.close()
+#     else:
+#         print("Invalid client socket.")
+#     if data:
+# #         data=data.decode("utf-8")
+#         
+#         led.value(1)
+#         parts = data.split(" ")
+#         x = int(parts[0])
+#         y = int(parts[1])
+#         z = int(parts[2])
+#         print('Received:', x,y,z)
+#         move(x_step=x, y_step=y, z_step=z)
+#         client.sendall(b'Ok')
+# #         print(str(x),str(y),str(z))
+# #     client.close()
+#     server.close()
+#     led.value(0)
+# 
+# 
+# 
+# #     if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:   # this is for usb only
+# #         a = sys.stdin.readline().strip()
+# #         if len(a) > 0:
+# #             led.value(1)
+# #             command = a
+# # #             if len(command) <= 1:
+# # #                 reset_position()
+# # #                 print("ok")
+# # #             else:
+# #             parts = command.split(" ")
+# #             x = int(parts[0])
+# #             y = int(parts[1])
+# #             z = int(parts[2])
+# #             move(x_step=x, y_step=y, z_step=z)
+# #             print("ok")
+# #             led.value(0)
+# 
 
