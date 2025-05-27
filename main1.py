@@ -10,7 +10,13 @@ voltmeter=ADC(27)
 global steps_per_revolution
 steps_per_revolution=200
 led = Pin("LED", Pin.OUT)
-
+global buffer_voltmeter
+buffer_voltmeter=[0]*10
+def update_buffer():
+    new=voltmeter.read_u16()
+    for i in range(len(buffer_voltmeter)-1):
+        buffer_voltmeter[i]=buffer_voltmeter[i+1]
+    buffer_voltmeter[-1]=new
 IN1x = Pin(2,Pin.OUT)#step
 
 IN2x = Pin(3,Pin.OUT)#dir
@@ -63,6 +69,7 @@ def freq_set(x_step,y_step,z_step):
     global pulse_x
     global pulse_y
     global pulse_z
+    global buffer_voltmeter
     pulse_x=0
     pulse_y=0
     pulse_z=0
@@ -105,33 +112,40 @@ def freq_set(x_step,y_step,z_step):
     oscillation_counts = [0] * len(pins)
     while True:
         current_time = ticks_ms()
-
-        for i, (pin, frequency, max_oscillations) in enumerate(pins):
-            if oscillation_counts[i] < max_oscillations:
-                if voltmeter.read_u16()<500: # if short current - take 4 steps back. hole will be slightly bigger. needs improvement
-                    pause_ticks = True # not disrupting the loop
-                    IN2x=not IN2x # dir change
-                    IN2y=not IN2y
-                    IN2z=not IN2z
-                    for _ in range(4): # back
-                        IN1x=not IN1x
-                        IN1y=not IN1y
-                        IN1z=not IN1z
-                    sleep(0.2)
-                    IN2x=not IN2x # dir forward again
-                    IN2y=not IN2y
-                    IN2z=not IN2z
-                    for _ in range(4): # forward
-                        IN1x=not IN1x
-                        IN1y=not IN1y
-                        IN1z=not IN1z
-                    pause_ticks = False # again, ticks & borrelia!
-                    
-                if ticks_diff(current_time, last_toggle_times[i]) >= 1000 / frequency: # main loop
-                    pin_states[i] = not pin_states[i]
-                    pin.value(pin_states[i])
-                    last_toggle_times[i] = current_time
-                    oscillation_counts[i] += 1
+        elapsed_time=0.0
+        pause_ticks=False
+        if not pause_ticks:
+            for i, (pin, frequency, max_oscillations) in enumerate(pins):
+                if oscillation_counts[i] < max_oscillations:
+                    start_time = ticks_ms()
+                    pause_ticks = True 
+                    update_buffer()
+                    maxi=max(buffer_voltmeter)
+                    if maxi<500: # if short current - take 4 steps back. hole will be slightly bigger. needs improvement
+                        # pause_ticks = True # not disrupting the loop
+                        IN2x=not IN2x # dir change
+                        IN2y=not IN2y
+                        IN2z=not IN2z
+                        for _ in range(4): # back
+                            IN1x=not IN1x
+                            IN1y=not IN1y
+                            IN1z=not IN1z
+                        sleep(0.2)
+                        IN2x=not IN2x # dir forward again
+                        IN2y=not IN2y
+                        IN2z=not IN2z
+                        for _ in range(4): # forward
+                            IN1x=not IN1x
+                            IN1y=not IN1y
+                            IN1z=not IN1z
+                        # pause_ticks = False # again, ticks & borrelia!
+                    pause_ticks = False
+                    elapsed_time += ticks_diff(ticks_ms(), start_time)
+                    if ticks_diff(current_time-elapsed_time, last_toggle_times[i]) >= 1000 / frequency: # main loop
+                        pin_states[i] = not pin_states[i]
+                        pin.value(pin_states[i])
+                        last_toggle_times[i] = current_time
+                        oscillation_counts[i] += 1
                 
         if all(oc >= max_oscillations for oc, _, max_oscillations in zip(oscillation_counts, pins, [max_oscillations for _, _, max_oscillations in pins])):
             break
