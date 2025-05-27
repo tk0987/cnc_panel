@@ -1,6 +1,6 @@
 from machine import Pin, ADC
 import utime
-
+machine.freq(125000000)
 # Constants
 FREQ = 1000
 PERIOD_US = int(1_000_000 / FREQ)  # 200 µs
