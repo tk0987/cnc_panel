@@ -5,18 +5,18 @@ from utime import sleep, ticks_ms,ticks_diff
 from machine import Pin,PWM,freq,ADC
 import select
 import math
-machine.freq(125000000)
+# machine.freq(125000000)
+
 voltmeter=ADC(27)
 global steps_per_revolution
 steps_per_revolution=200
 led = Pin("LED", Pin.OUT)
 global buffer_voltmeter
-buffer_voltmeter=[0]*10
+buffer_voltmeter=0
+
 def update_buffer():
-    new=voltmeter.read_u16()
-    for i in range(len(buffer_voltmeter)-1):
-        buffer_voltmeter[i]=buffer_voltmeter[i+1]
-    buffer_voltmeter[-1]=new
+    return voltmeter.read_u16()
+
 IN1x = Pin(2,Pin.OUT)#step
 
 IN2x = Pin(3,Pin.OUT)#dir
@@ -47,6 +47,9 @@ pulse_x=0
 pulse_y=0
 pulse_z=0
 
+global previous_x, previous_y, previous_z
+previous_x, previous_y, previous_z = 0, 0, 0
+
 def x_callback(pin):
 #     if pin == IN1x:
     global pulse_x
@@ -66,6 +69,7 @@ def z_callback(pin):
     return pulse_z
 
 def freq_set(x_step,y_step,z_step):
+    global previous_x, previous_y, previous_z
     global pulse_x
     global pulse_y
     global pulse_z
@@ -86,7 +90,7 @@ def freq_set(x_step,y_step,z_step):
         rel_speed_factor_z=abs(z_step)/length
     else:
         rel_speed_factor_z=0
-    speed_factor=rel_speed_factor_x+rel_speed_factor_y+rel_speed_factor_z
+    # speed_factor=rel_speed_factor_x+rel_speed_factor_y+rel_speed_factor_z
     base_freq=800
     if x_step!=0:
         freq_x=int(base_freq*(rel_speed_factor_x))
@@ -120,24 +124,14 @@ def freq_set(x_step,y_step,z_step):
                     start_time = ticks_ms()
                     pause_ticks = True 
                     update_buffer()
-                    maxi=max(buffer_voltmeter)
+                    maxi=buffer_voltmeter
                     if maxi<500: # if short current - take 4 steps back. hole will be slightly bigger. needs improvement
                         # pause_ticks = True # not disrupting the loop
-                        IN2x=not IN2x # dir change
-                        IN2y=not IN2y
-                        IN2z=not IN2z
-                        for _ in range(4): # back
-                            IN1x=not IN1x
-                            IN1y=not IN1y
-                            IN1z=not IN1z
+                        move(-previous_x, -previous_y, -previous_z)
                         sleep(0.2)
-                        IN2x=not IN2x # dir forward again
-                        IN2y=not IN2y
-                        IN2z=not IN2z
-                        for _ in range(4): # forward
-                            IN1x=not IN1x
-                            IN1y=not IN1y
-                            IN1z=not IN1z
+                        
+                        # Move forward again
+                        move(previous_x, previous_y, previous_z)
                         # pause_ticks = False # again, ticks & borrelia!
                     pause_ticks = False
                     elapsed_time += ticks_diff(ticks_ms(), start_time)
@@ -156,12 +150,14 @@ def freq_set(x_step,y_step,z_step):
 
 
 def move(x_step,y_step,z_step):
+    global previous_x, previous_y, previous_z
 #global current_position_x
 #global current_position_y
 #global current_position_z
     global pinsx
     global pinsy
     global pinsz
+    global buffer_voltmeter
     #direction determination below!!!
     if x_step>=0:
         pinsx[1].value(1)
@@ -184,6 +180,7 @@ def move(x_step,y_step,z_step):
     # control_z=0
     sleep(0.001)
     freq_set(x_step,y_step,z_step)
+    previous_x, previous_y, previous_z=x_step,y_step,z_step
 # Set up Pico W as an access point
 # Set up Pico W as an access point
 ap = network.WLAN(network.AP_IF)
