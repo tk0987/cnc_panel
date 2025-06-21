@@ -571,7 +571,7 @@ class Ui_Main(object):
                 if a == "ok":
                     
                     break
-            # print("ok")
+            print("ok")
         
             print(index)
         # client_socket.close()
@@ -873,7 +873,7 @@ class Ui_Main(object):
             self.graphicsView.setScene(self.scene)
             Ui_Main.coord(self,fibrile)
 
-    def button3Clicked(self):   
+    def button3Clicked(self):    # move all steppers
         global step_per_rev 
         # global com
         global pico_ip
