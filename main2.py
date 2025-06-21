@@ -1,3 +1,9 @@
+'''
+its not used now in the project. this code is intended to drive psu - 3 transistors that control an EDM spark.
+currently my psu is just a rectifier bridge with capacitor limiting the current to 7.5 A - before bridge, plus a fev milifarads (paralell now) after the bridge.
+the amount of power is ok, but seems to damage the material (not only cutting but also damage). psu with transistors will be rebuild, then this code may become usefull again
+'''
+
 from machine import Pin, ADC
 import utime
 machine.freq(125000000)
