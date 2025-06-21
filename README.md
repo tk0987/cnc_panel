@@ -1,9 +1,6 @@
 # cnc_panel
-for_control_of_cnc_multitool
+basic control over raspberry pico w cnc tool - currently electrical discharge machine (edm).
 
-gcode support along with own functionality (drill/sculpt image)
+gcode compatible. i added my own functionality - 'sculpt' and 'drill image'; they need revision because of an 'if' commands which work not really good now.
 
-todo: multithreading for gui
-
-todo2: EDM support for rpi picoW
-
+private project, but still open source. maybe someone will find sth usefull here
