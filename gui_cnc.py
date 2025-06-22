@@ -36,6 +36,7 @@ from datetime import datetime
 import re
 import matplotlib.pyplot as plt
 import socket
+import time
 
 # Pico W IP address in AP mode is usually 192.168.4.1
 global pico_ip
@@ -891,6 +892,16 @@ class Ui_Main(object):
         # s.write(data.encode("utf-8"))
         client_socket.sendall(data.encode('utf-8'))
         # client_socket.close()
+        while True:
+            a = client_socket.recv(5)
+            print(a)
+            
+            if a == "ok":
+                
+                break
+        self.progress.setValue(100)
+        time.sleep(0.5)
+        self.progress.setValue(0)
         
     def button2Clicked_x(self):
         
@@ -908,6 +919,16 @@ class Ui_Main(object):
         # s.write(data.encode("utf-8"))
         client_socket.sendall(data.encode('utf-8'))
         # client_socket.close()
+        while True:
+            a = client_socket.recv(5)
+            print(a)
+            
+            if a == "ok":
+                
+                break
+        self.progress.setValue(100)
+        time.sleep(0.5)
+        self.progress.setValue(0)
 
     def b4Clicked_y(self):  
         global step_per_rev
@@ -924,7 +945,16 @@ class Ui_Main(object):
         client_socket.sendall(data.encode('utf-8'))
         # s.write(data.encode("utf-8"))
         # client_socket.close()
-       
+        while True:
+            a = client_socket.recv(5)
+            print(a)
+            
+            if a == "ok":
+                
+                break
+        self.progress.setValue(100)
+        time.sleep(0.5)
+        self.progress.setValue(0)
     def b5Clicked_z(self):   
         global step_per_rev 
         # global com
@@ -938,12 +968,22 @@ class Ui_Main(object):
         # print(com)
         # s = serial.Serial(com, 115200)
         data = f"{0} {0} {int(steps*scale)}\n"
-        try:
+        # try:
             # s.write(data.encode("utf-8"))
-            client_socket.sendall(data.encode('utf-8'))
-        except Exception as e:
-            print(e)
+        client_socket.sendall(data.encode('utf-8'))
+        # except Exception as e:
+        #     print(e)
         # client_socket.close()
+        while True:
+            a = client_socket.recv(5)
+            print(a)
+            
+            if a == "ok":
+                
+                break
+        self.progress.setValue(100)
+        time.sleep(0.5)
+        self.progress.setValue(0)
 
 
     def coord_plot(self,file):   
@@ -961,22 +1001,22 @@ class Ui_Main(object):
                         y=column*scaleXY
                         if np.shape(array) == (len(array),len(array[0]),3):
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),4): #_____________________________________format typu PNG ma 4 wartości - kształt tensora: (x, y, 4)
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
-                        if np.shape(array) == (len(array),len(array[0]),1):
+                        if np.shape(array) == (len(array),len(array[0]),1)>0:
                             if (array[row,column,0])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column,0]
                             else:
                                     z=0
-                        if np.shape(array) == (len(array),len(array[0])):
+                        if np.shape(array) == (len(array),len(array[0]))>0:
                             if (array[row,column])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column]
                             else:
                                     z=0
                         f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
@@ -985,28 +1025,29 @@ class Ui_Main(object):
                         x=row*scaleXY
                         y=column*scaleXY
                         if np.shape(array) == (len(array),len(array[0]),3):
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3):
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),4): 
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3):
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),1):
                             if (array[row,column,0])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column,0]
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0])):
                             if (array[row,column])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column]
                             else:
                                     z=0
                         f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
             self.progress.setValue(int(np.floor(float(100.0*row/len(array)))))
         f.close()
+        self.progress.setValue(0)
 
     def sculpting(self,file):
         file=QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)") 
@@ -1530,22 +1571,22 @@ class Ui_Main(object):
                         y=column*scaleXY
                         if np.shape(array) == (len(array),len(array[0]),3):
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),4): #_____________________________________format typu PNG ma 4 wartości - kształt tensora: (x, y, 4)
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),1):
                             if (array[row,column,0])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column,0]
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0])):
                             if (array[row,column])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column]
                             else:
                                     z=0
                         f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
@@ -1555,22 +1596,22 @@ class Ui_Main(object):
                         y=column*scaleXY
                         if np.shape(array) == (len(array),len(array[0]),3):
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),4): 
                             if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0]),1):
                             if (array[row,column,0])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column,0]
                             else:
                                     z=0
                         if np.shape(array) == (len(array),len(array[0])):
                             if (array[row,column])>0:
-                                    z=1*scaleZ
+                                    z=1*scaleZ*array[row,column]
                             else:
                                     z=0
                         f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
