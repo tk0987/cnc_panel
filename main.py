@@ -5,7 +5,7 @@ from utime import sleep, ticks_ms,ticks_diff
 from machine import Pin,PWM,freq,ADC
 import select
 import math
-# machine.freq(125000000)
+machine.freq(125000000)
 
 voltmeter=ADC(27)
 global steps_per_revolution
@@ -134,10 +134,12 @@ def freq_set(x_step,y_step,z_step):
                         # Reverse direction for each axis
                         if x_step != 0:
                             pinsx[1].value(0 if x_step > 0 else 1)
+                            sleep(0.008)
                             for _ in range(reverse_steps * 2):  # 2 toggles per full step
                                 IN1x.toggle()
                                 sleep(0.005)
                             pinsx[1].value(0 if x_step > 0 else 1)
+                            sleep(0.008)
                             for _ in range(reverse_steps * 2):  # 2 toggles per full step
                                 IN1x.toggle()
                                 sleep(0.005)
@@ -145,10 +147,12 @@ def freq_set(x_step,y_step,z_step):
 
                         if y_step != 0:
                             pinsy[1].value(0 if y_step > 0 else 1)
+                            sleep(0.008)
                             for _ in range(reverse_steps * 2):
                                 IN1y.toggle()
                                 sleep(0.005)
                             pinsy[1].value(0 if y_step > 0 else 1)
+                            sleep(0.008)
                             for _ in range(reverse_steps * 2):
                                 IN1y.toggle()
                                 sleep(0.005)
@@ -156,10 +160,12 @@ def freq_set(x_step,y_step,z_step):
 
                         if z_step != 0:
                             pinsz[1].value(0 if z_step > 0 else 1)
+                            sleep(0.008)
                             for _ in range(reverse_steps * 2):
                                 IN1z.toggle()
                                 sleep(0.005)
                             pinsz[1].value(0 if z_step > 0 else 1)
+                            sleep(0.008)
                             for _ in range(reverse_steps * 2):
                                 IN1z.toggle()
                                 sleep(0.005)
@@ -255,6 +261,7 @@ while True:  # Ensure server is valid
                 print('Processed:', x, y, z)
                 move(x_step=x, y_step=y, z_step=z)
                 client.sendall(b'Ok')
+                client.close()
 
         except Exception as e:
             print(f"Error processing client data: {e}")
@@ -339,4 +346,5 @@ while True:  # Ensure server is valid
 # #             print("ok")
 # #             led.value(0)
 # 
+
 
