@@ -136,25 +136,34 @@ def freq_set(x_step,y_step,z_step):
                             pinsx[1].value(0 if x_step > 0 else 1)
                             for _ in range(reverse_steps * 2):  # 2 toggles per full step
                                 IN1x.toggle()
-                                sleep(0.001)
+                                sleep(0.005)
                             pinsx[1].value(0 if x_step > 0 else 1)
-                            sleep(0.001)
+                            for _ in range(reverse_steps * 2):  # 2 toggles per full step
+                                IN1x.toggle()
+                                sleep(0.005)
+                            sleep(0.01)
 
                         if y_step != 0:
                             pinsy[1].value(0 if y_step > 0 else 1)
                             for _ in range(reverse_steps * 2):
                                 IN1y.toggle()
-                                sleep(0.001)
+                                sleep(0.005)
                             pinsy[1].value(0 if y_step > 0 else 1)
-                            sleep(0.001)
+                            for _ in range(reverse_steps * 2):
+                                IN1y.toggle()
+                                sleep(0.005)
+                            sleep(0.01)
 
                         if z_step != 0:
                             pinsz[1].value(0 if z_step > 0 else 1)
                             for _ in range(reverse_steps * 2):
                                 IN1z.toggle()
-                                sleep(0.001)
+                                sleep(0.005)
                             pinsz[1].value(0 if z_step > 0 else 1)
-                            sleep(0.001)
+                            for _ in range(reverse_steps * 2):
+                                IN1z.toggle()
+                                sleep(0.005)
+                            sleep(0.01)
                         sleep(0.1)
                         
                         # Move forward again
