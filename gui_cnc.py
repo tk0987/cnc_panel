@@ -527,6 +527,7 @@ class Ui_Main(object):
             ax.legend()
             plt.show()
     def send_gcode_To_CNC(self,file):
+        
         global step_per_rev
         # global com
         global pico_ip
@@ -555,6 +556,8 @@ class Ui_Main(object):
         
         for index in range(0, len(temp), 1):
             if index>=1:
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.connect((pico_ip, port))
                 delta_x = int((temp[index-1,0]-temp[index,0]) * steps_per_mm)
                 delta_y = int((temp[index-1,1]-temp[index,1]) * steps_per_mm)
                 delta_z = int((temp[index-1,2]-temp[index,2]) * steps_per_mm)
@@ -570,7 +573,7 @@ class Ui_Main(object):
                 print(a)
                 
                 if a == "ok":
-                    
+                    client_socket.close()
                     break
             print("ok")
         
@@ -741,6 +744,7 @@ class Ui_Main(object):
                 self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
             f2.close()
     def sendTo_CNC(self):
+        
         global step_per_rev
         # global com
         global pico_ip
@@ -780,6 +784,7 @@ class Ui_Main(object):
             print(len(temp))
             while True:
                 print(indexxx)
+                
                 if indexxx>=1:
                     print(indexxx)
                     delta_x = int((temp[indexxx-1,0]-temp[indexxx,0]) * steps_per_mm)
@@ -789,9 +794,12 @@ class Ui_Main(object):
                     data = f"{delta_x} {delta_y} {delta_z}\n"
                     print(3)
                     try:
+                        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        client_socket.connect((pico_ip, port))
                         # s.write(data.encode("utf-8"))
                         client_socket.sendall(data.encode('utf-8'))
                         print(4)
+                        
                     except:
                         print(Exception)
                     f2.write(data)
@@ -802,6 +810,7 @@ class Ui_Main(object):
                         print(a)
                         
                         if a == "ok":
+                            client_socket.close()
                             break
                 indexxx+=1
                 if indexxx>=len(temp):
@@ -874,11 +883,14 @@ class Ui_Main(object):
             self.graphicsView.setScene(self.scene)
             Ui_Main.coord(self,fibrile)
 
-    def button3Clicked(self):    # move all steppers
+    def button3Clicked(self):
+        
         global step_per_rev 
         # global com
         global pico_ip
         global port
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((pico_ip, port))# move all steppers
         # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # client_socket.connect((pico_ip, port))
 
@@ -892,16 +904,17 @@ class Ui_Main(object):
         # s.write(data.encode("utf-8"))
         client_socket.sendall(data.encode('utf-8'))
         # client_socket.close()
-        while True:
-            a = client_socket.recv(5)
-            print(a)
+        # while True:
+        #     a = client_socket.recv(5)
+        #     print(a)
             
-            if a == "ok":
+        #     if a == "ok":
                 
-                break
+        #         break
         self.progress.setValue(100)
         time.sleep(0.5)
         self.progress.setValue(0)
+        client_socket.close()
         
     def button2Clicked_x(self):
         
@@ -909,6 +922,8 @@ class Ui_Main(object):
         # global com
         global pico_ip
         global port
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((pico_ip, port))
         # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
@@ -919,22 +934,26 @@ class Ui_Main(object):
         # s.write(data.encode("utf-8"))
         client_socket.sendall(data.encode('utf-8'))
         # client_socket.close()
-        while True:
-            a = client_socket.recv(5)
-            print(a)
+        # while True:
+        #     a = client_socket.recv(5)
+        #     print(a)
             
-            if a == "ok":
+        #     if a == "ok":
                 
-                break
+        #         break
         self.progress.setValue(100)
         time.sleep(0.5)
         self.progress.setValue(0)
+        client_socket.close()
 
     def b4Clicked_y(self):  
+        
         global step_per_rev
         # global com 
         global pico_ip
         global port
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((pico_ip, port))
         # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
@@ -945,23 +964,28 @@ class Ui_Main(object):
         client_socket.sendall(data.encode('utf-8'))
         # s.write(data.encode("utf-8"))
         # client_socket.close()
-        while True:
-            a = client_socket.recv(5)
-            print(a)
+        # while True:
+        #     a = client_socket.recv(5)
+        #     print(a)
             
-            if a == "ok":
+        #     if a == "ok":
                 
-                break
+        #         break
+        
         self.progress.setValue(100)
         time.sleep(0.5)
         self.progress.setValue(0)
+        client_socket.close()
     def b5Clicked_z(self):   
-        global step_per_rev 
+        
+        global step_per_rev
         # global com
         global pico_ip
         global port
         # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # client_socket.connect((pico_ip, port))
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((pico_ip, port))
         scale=float(self.lineEdit.text())
         steps=np.floor(float(self.lineEdit_4.text()))
         # com=str(self.COMs.text())
@@ -974,16 +998,17 @@ class Ui_Main(object):
         # except Exception as e:
         #     print(e)
         # client_socket.close()
-        while True:
-            a = client_socket.recv(5)
-            print(a)
+        # while True:
+        #     a = client_socket.recv(5)
+        #     print(a)
             
-            if a == "ok":
+        #     if a == "ok":
                 
-                break
+        #         break
         self.progress.setValue(100)
         time.sleep(0.5)
         self.progress.setValue(0)
+        client_socket.close()
 
 
     def coord_plot(self,file):   
@@ -1124,573 +1149,7 @@ class Ui_Main(object):
             self.coord_plot(fibrile)
 
 
-    def matplotlib_plot(self):
-        file = QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)")
-        if file[0]:
-            temp = []
-            f = open(file[0], "r",encoding='utf-8')
-            for line in f:
-                el=line.split("   ")
-                temp.append([float(el[0]),float(el[1]),float(el[2])])
-            f.close()
-            temp_array = np.array(temp)
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            x, y, z = temp_array.T
-            ax.plot(x, y, z, c='r', linestyle='-', label='Lines', linewidth=0.07)
-            ax.set_xlabel('X-axis')
-            ax.set_ylabel('Y-axis')
-            ax.set_zlabel('Z-axis')
-            ax.legend()
-            plt.show()
-    def send_gcode_To_CNC(self,file):
-        global step_per_rev
-        # global com
-        global pico_ip
-        global port
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client_socket.connect((pico_ip, port))
-
-        steps_per_mm = int(step_per_rev / 0.8)
-        
-        temp = np.asarray(file, dtype=np.float32)
-        now = datetime.now()
-        fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
-        f2 = open(str(fname) + ".txt", "w")
-        # com=str(self.COMs.text())
-        # try:
-        #     s = serial.Serial(com, 115200)
-        # except Exception as e:
-        #     pass
-        
-        for index in range(0, len(temp), 1):
-            if index>=1:
-                delta_x = int((temp[index-1,0]-temp[index,0]) * steps_per_mm)
-                delta_y = int((temp[index-1,1]-temp[index,1]) * steps_per_mm)
-                delta_z = int((temp[index-1,2]-temp[index,2]) * steps_per_mm)
-                
-                data = f"{delta_x} {delta_y} {delta_z}\n"
-                # s.write(data.encode("utf-8"))
-                client_socket.sendall(data.encode('utf-8'))
-                f2.write(f"{delta_x} {delta_y} {delta_z}\n")
-            self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
-            
-            while True:
-                a = client_socket.recv(5)
-                print(a)
-                
-                if a == "ok":
-                    
-                    break
-            # print("ok")
-            print(index)
-        # client_socket.close()
-        
-        # f.close()
-        f2.close()
-    def gcode_coords(self):
-        # global step_per_rev
-        # steps_per_mm = int(step_per_rev / 0.8)
-        file = QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)")
-        if file[0]:
-            temp = []
-            f = open(file[0], "r",encoding='utf-8')
-
-            def arch_cw(x_prev, y_prev, i, j, x, y):
-                radius = 0.0
-                angle_arch = 0.0
-
-                try:
-                    if i == 0.0 and j == 0.0:
-                        angle_arch = 0.0
-                    else:
-                        radius = np.sqrt(i**2 + j**2)
-                        ai_denominator = (y_prev - j)
-                        axy_denominator = (x_prev + i - x)
-                        
-                        if abs(ai_denominator) < 1e-6 or abs(axy_denominator) < 1e-6:
-                            ai = 0.0
-                            axy = 0.0
-                        else:
-                            ai = (x_prev - i) / ai_denominator
-                            axy = (y_prev + j - y) / axy_denominator
-                        
-                        if (1 + ai * axy) < 1e-6:
-                            angle_arch = 0.0
-                        else:
-                            angle_arch = np.arctan(abs(ai - axy) / (1 + ai * axy))
-                            
-                        if x == x_prev and y == y_prev:
-                            angle_arch = 2 * np.pi
-                        if x < x_prev or y < y_prev:
-                            angle_arch = 2 * np.pi - angle_arch
-
-                    decrement = 0.01
-                    arc_points = []
-                    while angle_arch >= 0.0:
-                        angle_arch -= decrement
-                        x_arc = i + radius * np.cos(angle_arch)
-                        y_arc = j + radius * np.sin(angle_arch)
-                        arc_points.append((x_arc, y_arc))
-
-                    return arc_points
-                except Exception as e:
-                    print(f"Error in arch_cw: {e}")
-                    return []
-            def arch_ccw(x_prev, y_prev, i, j, x, y):
-                radius = 0.0
-                angle_arch = 0.0
-
-                try:
-                    if i == 0.0 and j == 0.0:
-                        angle_arch = 0.0
-                    else:
-                        radius = np.sqrt(i**2 + j**2)
-                        ai_denominator = (y_prev - j)
-                        axy_denominator = (x_prev + i - x)
-                        
-                        if abs(ai_denominator) < 1e-6 or abs(axy_denominator) < 1e-6:
-                            ai = 0.0
-                            axy = 0.0
-                        else:
-                            ai = (x_prev - i) / ai_denominator
-                            axy = (y_prev + j - y) / axy_denominator
-                        
-                        if (1 + ai * axy) < 1e-6:
-                            angle_arch = 0.0
-                        else:
-                            angle_arch = np.arctan(abs(ai - axy) / (1 + ai * axy))
-                            
-                        if x == x_prev and y == y_prev:
-                            angle_arch = 2 * np.pi
-                        if x < x_prev or y < y_prev:
-                            angle_arch = 2 * np.pi - angle_arch
-
-                    increment = 0.01
-                    arc_points = []
-                    dummy=0.0
-                    while dummy <= angle_arch:
-                        angle_arch += increment
-                        x_arc = i + radius * np.cos(dummy)
-                        y_arc = j + radius * np.sin(dummy)
-                        arc_points.append((x_arc, y_arc))
-
-                    return arc_points
-                except Exception as e:
-                    print(f"Error in arch_cw: {e}")
-                    return []
-            
-            lines = [line for line in f]
-            temp = []
-            index = 0
-            z = 0.0
-            x = 0.0
-            y = 0.0
-            x_prev = 0.0
-            y_prev = 0.0
-            # z_prev = 0.0
-# 
-            for line2 in lines:
-                try:
-                    x_prev = x
-                    y_prev = y
-                    # z_prev = z
-                    i = 0.0
-                    j = 0.0
-                    feed_rate = 1.0
-                    k = 0.0
-                    g = 0.0
-                    parts = re.findall(r'([A-Z]+)([+-]?\d+(?:\.\d+)?)', line2)
-                    for part in parts:
-                        code, value = part
-                        value = float(value)
-                        if code == 'X':
-                            x = value
-                        if code == 'Y':
-                            y = value
-                        if code == 'Z':
-                            z = value
-                        if code == 'I':
-                            i = value
-                        if code == 'J':
-                            j = value
-                        if code == 'K':
-                            k = value
-                        if code == 'F':
-                            feed_rate = value
-                        if code == 'G':
-                            g = value
-                        
-                    if i != 0.0 or j != 0.0:
-                        if g==2:
-                            arc_points = arch_cw(x_prev, y_prev, i, j, x, y)
-                        if g==3:
-                            arc_points = arch_ccw(x_prev, y_prev, i, j, x, y)
-                        for point in arc_points:
-                            x1, y1 = point
-                            x1 = x_prev + x1
-                            y1 = y_prev + y1
-                            temp.append([x1, y1, z])
-                    else:
-                        temp.append([x, y, z])
-                    
-                    index += 1
-                    self.progress.setValue(int(np.floor(float(100.0*index/len(lines)))))
-
-                except Exception as e:
-                    print(f"Error parsing line: {line2}")
-                    print(f"Error message: {e}")
-            now = datetime.now()
-            fname=now.strftime(f"%d_%m_%Y__%H_%M_%S_gcode-decoded")
-            f2=open(str(fname)+".txt","w")
-            index=0
-            for element in temp:
-                index+=1
-                f2.writelines(str(element[0])+"   "+str(element[1])+"   "+str(element[2])+"\n")
-                self.progress.setValue(int(np.floor(float(100.0*index/len(temp)))))
-            f2.close()
-    def sendTo_CNC(self):
-        global step_per_rev
-        # global com
-        global pico_ip
-        global port
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client_socket.connect((pico_ip, port))
-
-        steps_per_mm = int(step_per_rev / 0.8)
-        file = QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)")
-        if file[0]:
-            temp = []
-            with open(file[0], "r") as f:
-                indexx=0
-                for line in f:
-                    parts = re.findall(r"[-+]?\d*\.\d+|\d+(?:[eE][-+]?\d+)?", line)
-                    indexx+=1
-                    try:
-                        a, b, c = map(float, parts)
-                        temp.append([a, b, c])
-                    except ValueError as e:
-                        print("Error parsing line:", line)
-            # print(1)
-            f.close()
-
-            temp = np.asarray(temp)
-            now = datetime.now()
-            fname = now.strftime(f"%d_%m_%Y__%H_%M_%S_sended")
-            f2 = open(str(fname) + ".txt", "w")
-            # try:
-                # com=str(self.COMs.text())
-            #     s = serial.Serial(com, 115200)
-            # except:
-            #     print(Exception)
-            # print(2)
-            indexxx=0
-            print(len(temp))
-            while True:
-                print(indexxx)
-                if indexxx>=1:
-                    print(indexxx)
-                    delta_x = int((temp[indexxx-1,0]-temp[indexxx,0]) * steps_per_mm)
-                    delta_y = int((temp[indexxx-1,1]-temp[indexxx,1]) * steps_per_mm)
-                    delta_z = int((temp[indexxx-1,2]-temp[indexxx,2]) * steps_per_mm)
-                    
-                    data = f"{delta_x} {delta_y} {delta_z}\n"
-                    print(3)
-                    try:
-                        # s.write(data.encode("utf-8"))
-                        client_socket.sendall(data.encode('utf-8'))
-                        print(4)
-                    except:
-                        print(Exception)
-                    f2.write(data)
-                    self.progress.setValue(int(np.floor(float(100.0*indexxx/len(temp)))))
-                
-                    while True:
-                        a = client_socket.recv(5)
-                        print(a)
-                        
-                        if a == "ok":
-                            break
-                indexxx+=1
-                if indexxx>=len(temp):
-                    break
-                # client_socket.close()
-                # print("ok")
-                print(indexxx)
-        # client_socket.close()
-
-    def coord(self,file):  
-        
-        now = datetime.now()
-        fname=now.strftime(f"%d_%m_%Y__%H_%M_%S_drill")
-        f=open(str(fname)+".txt","w")
-        array=np.asanyarray(file)
-        scaleXY=float(str(self.lineEdit_6.text()))
-        scaleZ=float(str(self.lineEdit_5.text()))
-
-        for row in range(len(array)):
-            if row % 2 == 0:
-                for column in range(len(array[0])):
-                    x=row*scaleXY
-                    y=column*scaleXY
-                    if np.shape(array) == (len(array),len(array[0]),3):
-                        if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                            z=(255.0-array[row,column,0]/3-array[row,column,1]/3-array[row,column,2]/3)*scaleZ+1*scaleZ
-                    if np.shape(array) == (len(array),len(array[0]),4): #_____________________________________format typu PNG ma 4 wartości - kształt tensora: (x, y, 4)
-                        if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                            z=(255.0-array[row,column,0]/3-array[row,column,1]/3-array[row,column,2]/3)*scaleZ+1*scaleZ
-                    if np.shape(array) == (len(array),len(array[0]),1):
-                        if (array[row,column,0])>0:
-                            z=(255.0-array[row,column,0])*scaleZ+1*scaleZ
-                    if np.shape(array) == (len(array),len(array[0])):
-                        if (array[row,column])>0:
-                            z=(255.0-array[row,column])*scaleZ+1*scaleZ
-                    if z>0:
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(0.0)+"\n")
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(0.0)+"\n")
-            if row % 2 == 1:
-                for column in range(len(array[0])-1,-1,-1):
-                    x=row*scaleXY
-                    y=column*scaleXY
-                    if np.shape(array) == (len(array),len(array[0]),3):
-                        if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                            z=(255.0-array[row,column,0]/3-array[row,column,1]/3-array[row,column,2]/3)*scaleZ+1*scaleZ
-                    if np.shape(array) == (len(array),len(array[0]),4):
-                        if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                            z=(255.0-array[row,column,0]/3-array[row,column,1]/3-array[row,column,2]/3)*scaleZ+1*scaleZ
-                    if np.shape(array) == (len(array),len(array[0]),1):
-                        if (array[row,column,0])>0:
-                            z=(255.0-array[row,column,0])*scaleZ+1*scaleZ
-                    if np.shape(array) == (len(array),len(array[0])):
-                        if (array[row,column])>0:
-                            z=(255.0-array[row,column])*scaleZ+1*scaleZ
-                    if z>0:
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(0.0)+"\n")
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(0.0)+"\n")
-            self.progress.setValue(int(np.floor(float(100.0*row/len(array)))))
-        f.close()
-                
-
-    def imageshow(self): #
-        file=QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)") 
-        if file[0]:
-            image = QImage(file[0])
-            fibrile=Image.open(file[0])
-
-            self.scene.addPixmap(QPixmap(image))
-            self.graphicsView.setScene(self.scene)
-            Ui_Main.coord(self,fibrile)
-
-    def button3Clicked(self):   
-        global step_per_rev 
-        # global com
-        global pico_ip
-        global port
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client_socket.connect((pico_ip, port))
-
-        scale=float(self.lineEdit.text())
-        steps_y=int(float(self.lineEdit_3.text())*scale)
-        steps_x=int(float(self.lineEdit_2.text())*scale)
-        steps_z=int(float(self.lineEdit_4.text())*scale)
-        # com=str(self.COMs.text())
-        # s = serial.Serial(com, 115200)
-        data = f"{steps_x} {steps_y} {steps_z}\n"
-        # s.write(data.encode("utf-8"))
-        client_socket.sendall(data.encode('utf-8'))
-        # client_socket.close()
-        
-    def button2Clicked_x(self):
-        
-        global step_per_rev 
-        # global com
-        global pico_ip
-        global port
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client_socket.connect((pico_ip, port))
-        scale=float(self.lineEdit.text())
-        steps=np.floor(float(self.lineEdit_2.text()))
-        # com=str(self.COMs.text())
-        # s = serial.Serial(com, 115200)
-        data = f"{int(steps*scale)} {0} {0}\n"
-        # s.write(data.encode("utf-8"))
-        client_socket.sendall(data.encode('utf-8'))
-        # client_socket.close()
-
-    def b4Clicked_y(self):  
-        global step_per_rev
-        global com 
-        global pico_ip
-        global port
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client_socket.connect((pico_ip, port))
-        scale=float(self.lineEdit.text())
-        steps=np.floor(float(self.lineEdit_3.text()))
-        # com=str(self.COMs.text())
-        # s = serial.Serial(com, 115200)
-        data = f"{0} {int(steps*scale)} {0}\n"
-        client_socket.sendall(data.encode('utf-8'))
-        # s.write(data.encode("utf-8"))
-        # client_socket.close()
-
-    def b5Clicked_z(self):   
-        global step_per_rev 
-        global com
-        global pico_ip
-        global port
-        # client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # client_socket.connect((pico_ip, port))
-        scale=float(self.lineEdit.text())
-        steps=np.floor(float(self.lineEdit_4.text()))
-        # com=str(self.COMs.text())
-        # print(com)
-        # s = serial.Serial(com, 115200)
-        data = f"{0} {0} {int(steps*scale)}\n"
-        try:
-            # s.write(data.encode("utf-8"))
-            client_socket.sendall(data.encode('utf-8'))
-        except Exception as e:
-            print(e)
-        # client_socket.close()
-
-
-    def coord_plot(self,file):   
-        now = datetime.now()
-        fname=now.strftime(f"%d_%m_%Y__%H_%M_%S_plot")
-        f=open(str(fname)+".txt","w")
-        array=np.asanyarray(file)
-        scaleXY=float(str(self.lineEdit_6.text()))
-        scaleZ=float(str(self.lineEdit_5.text()))
-
-        for row in range(len(array)):
-            if row % 2 == 0:
-                for column in range(len(array[0])):
-                        x=row*scaleXY
-                        y=column*scaleXY
-                        if np.shape(array) == (len(array),len(array[0]),3):
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
-                            else:
-                                    z=0
-                        if np.shape(array) == (len(array),len(array[0]),4): #_____________________________________format typu PNG ma 4 wartości - kształt tensora: (x, y, 4)
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
-                            else:
-                                    z=0
-                        if np.shape(array) == (len(array),len(array[0]),1):
-                            if (array[row,column,0])>0:
-                                    z=1*scaleZ*array[row,column,0]
-                            else:
-                                    z=0
-                        if np.shape(array) == (len(array),len(array[0])):
-                            if (array[row,column])>0:
-                                    z=1*scaleZ*array[row,column]
-                            else:
-                                    z=0
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
-            if row % 2 == 1:
-                for column in range(len(array[0])-1,-1,-1):
-                        x=row*scaleXY
-                        y=column*scaleXY
-                        if np.shape(array) == (len(array),len(array[0]),3):
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
-                            else:
-                                    z=0
-                        if np.shape(array) == (len(array),len(array[0]),4): 
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>0:
-                                    z=1*scaleZ*(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)
-                            else:
-                                    z=0
-                        if np.shape(array) == (len(array),len(array[0]),1):
-                            if (array[row,column,0])>0:
-                                    z=1*scaleZ*array[row,column,0]
-                            else:
-                                    z=0
-                        if np.shape(array) == (len(array),len(array[0])):
-                            if (array[row,column])>0:
-                                    z=1*scaleZ*array[row,column]
-                            else:
-                                    z=0
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
-            self.progress.setValue(int(np.floor(float(100.0*row/len(array)))))
-        f.close()
-
-    def sculpting(self,file):
-        file=QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)") 
-        if file[0]:
-            image = QImage(file[0])
-            fibrile=Image.open(file[0])
-
-            self.scene.addPixmap(QPixmap(image))
-            self.graphicsView.setScene(self.scene)
-            now = datetime.now()
-            fname=now.strftime(f"%d_%m_%Y__%H_%M_%S_sculpt")
-            f=open(str(fname)+".txt","w")
-            array=np.asanyarray(fibrile)
-
-        
-            scaleXY=float(str(self.lineEdit_6.text()))
-            scaleZ=float(str(self.lineEdit_5.text()))
-            ind=0
-
-            for row in range(len(array)):
-                ind+=1
-                if row % 2 == 0:
-                    for column in range(len(array[0])):
-                            x=row*scaleXY
-                            y=column*scaleXY
-                            if np.shape(array) == (len(array),len(array[0]),3):
-                                if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>=0:
-                                    z=(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)*scaleZ
-
-                            if np.shape(array) == (len(array),len(array[0]),4): 
-                                if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>=0:
-                                    z=(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)*scaleZ
-
-                            if np.shape(array) == (len(array),len(array[0]),1):
-                                if (array[row,column,0])>=0:
-                                    z=array[row,column,0]*scaleZ
-
-                            if np.shape(array) == (len(array),len(array[0])):
-                                if (array[row,column])>=0:
-                                    z=array[row,column]*scaleZ
-
-                            f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
-
-                if row % 2 == 1:
-                    for column in range(len(array[0])-1,-1,-1):
-                        x=row*scaleXY
-                        y=column*scaleXY
-                        if np.shape(array) == (len(array),len(array[0]),3):
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>=0:
-                                z=(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)*scaleZ
-
-                        if np.shape(array) == (len(array),len(array[0]),4): 
-                            if (array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)>=0:
-                                z=(array[row,column,0]/3+array[row,column,1]/3+array[row,column,2]/3)*scaleZ
-
-                        if np.shape(array) == (len(array),len(array[0]),1):
-                            if (array[row,column,0])>=0:
-                                z=(array[row,column,0])*scaleZ
-
-                        if np.shape(array) == (len(array),len(array[0])):
-                            if (array[row,column])>=0:
-                                z=(array[row,column])*scaleZ
-                        f.writelines(str(x)+"   "+str(y)+"   "+str(z)+"\n")
-                self.progress.setValue(int(np.floor(float(100.0*row/len(array)))))
-        f.close()
-    def imageshow_plot(self): 
-        file=QFileDialog.getOpenFileName(MainWindow, "Open File", "", "All Files (*)")
-        if file[0]:
-            image = QImage(file[0])
-            fibrile=Image.open(file[0])
-
-            self.scene.addPixmap(QPixmap(image))
-            self.graphicsView.setScene(self.scene)
-            self.coord_plot(fibrile)
+#     
 
 
 if __name__ == "__main__":
@@ -1700,11 +1159,11 @@ if __name__ == "__main__":
     ui = Ui_Main()
     ui.setupUi(MainWindow)
 
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((pico_ip, port))
+    
     MainWindow.show()
     print("Window should now be visible.")
     
     sys.exit(app.exec())
-    client_socket.close()
+    
+    
     
